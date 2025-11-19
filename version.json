@@ -1,10 +1,11 @@
 {
-  "latest_version": "1.2.5",
+  "latest_version": "1.3.5",
   "versions": [
     "1.0",
     "1.1",
     "1.2",
-    "1.2.5"
+    "1.3",
+    "1.3.5"
   ],
   "hosts": [
     {
@@ -13,7 +14,8 @@
       "links": {
         "1.0_1.1": "1ABC123XYZ456DEF789",
         "1.1_1.2": "1XYZ789ABC123DEF456",
-        "1.2_1.2.5": "1DEF456GHI789JKL012"
+        "1.2_1.3": "1DEF456GHI789JKL012",
+        "1.3_1.3.5": "1GHI789JKL012MNO345"
       }
     },
     {
@@ -22,14 +24,16 @@
       "links": {
         "1.0_1.1": "1MIRROR123ABC456XYZ",
         "1.1_1.2": "1MIRROR789DEF123ABC",
-        "1.2_1.2.5": "1MIRROR456GHI789JKL"
+        "1.2_1.3": "1MIRROR456GHI789JKL",
+        "1.3_1.3.5": "1MIRROR789MNO012PQR"
       }
     }
   ],
   "update_sizes": {
     "1.0_1.1": "500 MB",
     "1.1_1.2": "750 MB",
-    "1.2_1.2.5": "300 MB"
+    "1.2_1.3": "600 MB",
+    "1.3_1.3.5": "350 MB"
   },
   "host_preference_order": [
     "gdrive_primary",
@@ -39,7 +43,8 @@
     "1.0": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.0.json",
     "1.1": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.1.json",
     "1.2": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.2.json",
-    "1.2.5": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.2.5.json"
+    "1.3": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.3.json",
+    "1.3.5": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.3.5.json"
   },
   "fallback_links": {
     "1.0_1.1": {
@@ -50,9 +55,13 @@
       "url": "https://backup-cdn.example.com/cricket26_v1.1_to_v1.2.zip",
       "message": "GDrive links temporarily unavailable. Downloading from backup CDN for v1.1 → v1.2 update."
     },
-    "1.2_1.2.5": {
-      "url": "https://direct-download-server.com/cricket26/updates/cricket26_v1.2_to_v1.2.5.zip",
-      "message": "Primary download sources unavailable. Using fallback server for v1.2 → v1.2.5 update."
+    "1.2_1.3": {
+      "url": "https://direct-download-server.com/cricket26/updates/cricket26_v1.2_to_v1.3.zip",
+      "message": "Primary download sources unavailable. Using fallback server for v1.2 → v1.3 update."
+    },
+    "1.3_1.3.5": {
+      "url": "https://backup-cdn.example.com/cricket26_v1.3_to_v1.3.5.zip",
+      "message": "GDrive links temporarily unavailable. Downloading from backup CDN for v1.3 → v1.3.5 update."
     }
   }
 }
