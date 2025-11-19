@@ -81,7 +81,7 @@ class Constants:
     APP_VERSION = "v1.0"
     AUTHOR = "XLR8"
     CREATOR_DISCORD = "xlr8_boi"
-    API_URL = "https://api.github.com/repos/aman71711/CRICKET26_Utility/contents/version.json"
+    API_URL = "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/version.json"
     LOG_FILENAME = "cricket26_updater.log"
     DISCORD_LINK = "https://discord.gg/5gWWv3ar"
     LOG_SYMBOLS = {"INFO": "✅", "WARNING": "⚠️", "ERROR": "❌", "CRITICAL": "🛑", "SETTING": "⚙️", "DIAG": "🩺" }
@@ -700,10 +700,21 @@ class APIHandler:
                     # New Cricket 26 schema validation
                     logger.log("Detected new schema version 2.0 (Cricket 26 sequential updates)", "INFO")
                     
-                    required_fields = ['game_name', 'latest_version', 'versions', 'updates']
-                    missing_fields = [f for f in required_fields if f not in data]
-                    if missing_fields:
-                        raise ValueError(f"Invalid v2.0 schema - missing fields: {missing_fields}")
+                    # Check for required top-level sections
+                    required_sections = ['metadata', 'game_info', 'updates']
+                    missing_sections = [s for s in required_sections if s not in data]
+                    if missing_sections:
+                        raise ValueError(f"Invalid v2.0 schema - missing sections: {missing_sections}")
+                    
+                    # Check metadata fields
+                    metadata = data.get('metadata', {})
+                    if 'game_name' not in metadata:
+                        raise ValueError("Invalid v2.0 schema - metadata missing game_name")
+                    
+                    # Check game_info fields
+                    game_info = data.get('game_info', {})
+                    if 'latest_version' not in game_info:
+                        raise ValueError("Invalid v2.0 schema - game_info missing latest_version")
                     
                     # Validate updates structure
                     for idx, update in enumerate(data.get('updates', [])):
@@ -723,6 +734,11 @@ class APIHandler:
                             raise ValueError(f"Update {idx} primary download missing type")
                     
                     logger.log(f"Schema v2.0 validation passed: {len(data['updates'])} sequential updates", "INFO")
+                    
+                    # Normalize v2.0 schema by flattening for backward compatibility
+                    data['latest_version'] = data['game_info']['latest_version']
+                    data['game_name'] = data['metadata']['game_name']
+                    data['versions'] = data['game_info'].get('all_versions', [])
                 
                 elif 'latest_version' not in data:
                     # Old schema requires at least latest_version
@@ -787,9 +803,24 @@ class APIHandler:
                 
                 data = json.loads(cache_path.read_text(encoding="utf-8"))
                 
-                # Validate cached data
-                if not isinstance(data, dict) or 'latest_version' not in data:
-                    raise ValueError("Invalid cached data format")
+                # Validate cached data - check for v2.0 schema first
+                if not isinstance(data, dict):
+                    raise ValueError("Invalid cached data format - not a dict")
+                
+                # Normalize v2.0 schema if present
+                schema_version = data.get('metadata', {}).get('schema_version', '1.0')
+                if schema_version == '2.0':
+                    # Flatten v2.0 structure for backward compatibility
+                    if 'game_info' in data and 'latest_version' in data['game_info']:
+                        data['latest_version'] = data['game_info']['latest_version']
+                    if 'metadata' in data and 'game_name' in data['metadata']:
+                        data['game_name'] = data['metadata']['game_name']
+                    if 'game_info' in data and 'all_versions' in data['game_info']:
+                        data['versions'] = data['game_info']['all_versions']
+                
+                # Now validate required field exists
+                if 'latest_version' not in data:
+                    raise ValueError("Invalid cached data format - missing latest_version")
                 
                 logger.log(f"Successfully loaded from cache: v{data.get('latest_version')}", "INFO")
                 return data, "CACHE"
