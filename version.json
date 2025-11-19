@@ -10,8 +10,16 @@
       "id": "gdrive_primary",
       "name": "Google Drive",
       "links": {
-        "1.0_1.1": "1ABC123XYZ456",
-        "1.1_1.2": "1XYZ789ABC123"
+        "1.0_1.1": "1ABC123XYZ456DEF789",
+        "1.1_1.2": "1XYZ789ABC123DEF456"
+      }
+    },
+    {
+      "id": "gdrive_mirror",
+      "name": "Google Drive Mirror",
+      "links": {
+        "1.0_1.1": "1MIRROR123ABC456XYZ",
+        "1.1_1.2": "1MIRROR789DEF123ABC"
       }
     }
   ],
@@ -20,10 +28,21 @@
     "1.1_1.2": "750 MB"
   },
   "host_preference_order": [
-    "gdrive_primary"
+    "gdrive_primary",
+    "gdrive_mirror"
   ],
   "manifest_links": {
     "1.1": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.1.json",
     "1.2": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.2.json"
+  },
+  "fallback_links": {
+    "1.0_1.1": {
+      "url": "https://direct-download-server.com/cricket26/updates/cricket26_v1.0_to_v1.1.zip",
+      "message": "Primary download sources unavailable. Using fallback server for v1.0 → v1.1 update."
+    },
+    "1.1_1.2": {
+      "url": "https://backup-cdn.example.com/cricket26_v1.1_to_v1.2.zip",
+      "message": "GDrive links temporarily unavailable. Downloading from backup CDN..."
+    }
   }
 }
