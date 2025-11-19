@@ -1,0 +1,16 @@
+{
+  "_comment": "Cricket 26 v1.0.1 - Updated File Manifest",
+  "_description": "SHA256 checksums for all game files after applying v1.0.0→1.0.1 update",
+  "_generated": "2025-01-15T00:00:00Z",
+  "_file_count": 0,
+  "_instructions": "Generate this manifest by scanning your Cricket 26 v1.0.1 installation",
+  
+  "_example_entries": {
+    "cricket26.exe": "EXAMPLE_SHA256_HASH_UPDATED_VERSION_1_0_1_PLACEHOLDER_HERE",
+    "Data/GameData.pak": "EXAMPLE_SHA256_HASH_UPDATED_VERSION_1_0_1_PLACEHOLDER_HERE",
+    "Engine/Binaries/cricket26_engine.dll": "EXAMPLE_SHA256_HASH_UPDATED_VERSION_1_0_1_PLACEHOLDER_HERE"
+  },
+  
+  "_note": "Replace this file with actual file hashes. Use forward slashes (/) for paths.",
+  "_generation_script": "Use admin panel or custom script to generate complete manifest"
+}

@@ -1,0 +1,157 @@
+{
+  "_comment": "CRICKET 26 UPDATE CONFIGURATION - ADMIN PANEL FRIENDLY",
+  "_instructions": "Edit this file to add new updates. Sequential updates will install in order: 1.0.0→1.0.1→1.0.2→1.0.3",
+  
+  "metadata": {
+    "game_name": "Cricket 26",
+    "schema_version": "2.0",
+    "supports_sequential_updates": true,
+    "last_updated": "2025-02-15T10:30:00Z",
+    "min_app_version": "1.0",
+    "update_notes": "All updates install sequentially. Updater handles correct order automatically.",
+    "support_url": "https://discord.gg/5gWWv3ar",
+    "documentation_url": "https://github.com/aman71711/CRICKET26_Utility/wiki"
+  },
+
+  "game_info": {
+    "latest_version": "1.0.3",
+    "all_versions": ["1.0.0", "1.0.1", "1.0.2", "1.0.3"],
+    "base_version": "1.0.0"
+  },
+
+  "updates": [
+    {
+      "update_id": 1,
+      "from_version": "1.0.0",
+      "to_version": "1.0.1",
+      "release_date": "2025-01-15",
+      "size_mb": 250,
+      "mandatory": true,
+      "description": "Initial patch - Bug fixes and performance improvements",
+      "changelog": [
+        "Fixed rendering issues in stadium view",
+        "Improved frame rate in high-detail scenes",
+        "Added support for new graphics settings",
+        "Fixed crash when loading custom teams",
+        "Optimized memory usage"
+      ],
+      "downloads": {
+        "primary": {
+          "type": "gdrive",
+          "name": "Google Drive Official Mirror",
+          "url": "https://drive.google.com/file/d/1ABC123XYZ456/view?usp=sharing",
+          "file_id": "1ABC123XYZ456",
+          "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "fallback": [
+          {
+            "type": "direct",
+            "name": "CDN Mirror (US)",
+            "url": "https://cdn.example.com/cricket26/patches/1.0.0_to_1.0.1.zip",
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "type": "gdrive",
+            "name": "Google Drive Backup Mirror",
+            "url": "https://drive.google.com/file/d/1XYZ789ABC123/view?usp=sharing",
+            "file_id": "1XYZ789ABC123",
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      }
+    },
+    {
+      "update_id": 2,
+      "from_version": "1.0.1",
+      "to_version": "1.0.2",
+      "release_date": "2025-02-01",
+      "size_mb": 180,
+      "mandatory": true,
+      "description": "Performance optimization and multiplayer fixes",
+      "changelog": [
+        "Optimized game engine for better performance",
+        "Fixed multiplayer connection issues",
+        "Enhanced graphics quality",
+        "Added new camera angles",
+        "Fixed audio synchronization bugs"
+      ],
+      "downloads": {
+        "primary": {
+          "type": "gdrive",
+          "name": "Google Drive Official",
+          "url": "https://drive.google.com/file/d/1DEF456GHI789/view?usp=sharing",
+          "file_id": "1DEF456GHI789",
+          "checksum": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+        },
+        "fallback": [
+          {
+            "type": "direct",
+            "name": "CDN Mirror (EU)",
+            "url": "https://cdn.example.com/cricket26/patches/1.0.1_to_1.0.2.zip",
+            "checksum": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+          }
+        ]
+      }
+    },
+    {
+      "update_id": 3,
+      "from_version": "1.0.2",
+      "to_version": "1.0.3",
+      "release_date": "2025-02-15",
+      "size_mb": 320,
+      "mandatory": false,
+      "description": "Major content update with new features",
+      "changelog": [
+        "Added new stadiums",
+        "New player models and animations",
+        "Enhanced weather effects",
+        "Improved AI difficulty scaling",
+        "Added replay editor",
+        "Fixed various gameplay bugs"
+      ],
+      "downloads": {
+        "primary": {
+          "type": "direct",
+          "name": "CDN Primary (Global)",
+          "url": "https://cdn.example.com/cricket26/patches/1.0.2_to_1.0.3.zip",
+          "checksum": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+        },
+        "fallback": [
+          {
+            "type": "gdrive",
+            "name": "Google Drive Mirror 1",
+            "url": "https://drive.google.com/file/d/1GHI789JKL012/view?usp=sharing",
+            "file_id": "1GHI789JKL012",
+            "checksum": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+          },
+          {
+            "type": "gdrive",
+            "name": "Google Drive Mirror 2",
+            "url": "https://drive.google.com/file/d/1JKL012MNO345/view?usp=sharing",
+            "file_id": "1JKL012MNO345",
+            "checksum": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+          }
+        ]
+      }
+    }
+  ],
+
+  "verification_manifests": {
+    "_comment": "GitHub API URLs to manifest JSON files for each version",
+    "1.0.0": "https://api.github.com/repos/aman71711/CRICKET26_Utility/contents/manifests/1.0.0_manifest.json",
+    "1.0.1": "https://api.github.com/repos/aman71711/CRICKET26_Utility/contents/manifests/1.0.1_manifest.json",
+    "1.0.2": "https://api.github.com/repos/aman71711/CRICKET26_Utility/contents/manifests/1.0.2_manifest.json",
+    "1.0.3": "https://api.github.com/repos/aman71711/CRICKET26_Utility/contents/manifests/1.0.3_manifest.json"
+  },
+
+  "admin_panel_config": {
+    "_comment": "Configuration for Python admin panel - DO NOT EDIT MANUALLY",
+    "enable_auto_update": true,
+    "check_interval_minutes": 60,
+    "notification_channels": ["discord", "email"],
+    "allowed_editors": ["admin", "moderator"],
+    "backup_before_edit": true,
+    "validate_checksums": true,
+    "max_fallback_sources": 3
+  }
+}
