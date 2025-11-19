@@ -207,30 +207,30 @@ class ModernThemeManager:
     # --- Color Palettes (Modern Design System) ---
     THEMES = {
         'dark': {
-            'name': 'Dark Professional',
+            'name': 'Cricket 26 Fresh',
             'colors': {
-                'primary': '#0a0a0a',           # Deeper black for modern look
-                'secondary': '#141414',         # Rich dark gray
-                'tertiary': '#1e1e1e',          # Elevated surface
-                'accent': '#2196F3',            # Material Blue - more vibrant
-                'accent_hover': '#1976D2',      # Darker blue on hover
-                'success': '#4CAF50',           # Material Green - vibrant
-                'warning': '#FF9800',           # Material Orange
-                'error': '#F44336',             # Material Red
-                'info': '#00BCD4',              # Cyan - bright and modern
-                'cyan': '#00E5FF',              # Electric cyan for highlights
-                'purple': '#9C27B0',            # Material Purple for variety
-                'text_primary': '#FFFFFF',      # Pure white
-                'text_secondary': '#B0BEC5',    # Cool gray
-                'text_muted': '#78909C',        # Muted blue-gray
-                'border': '#263238',            # Dark blue-gray border
-                'highlight': '#37474F',         # Blue-gray highlight
-                'surface': '#1a1a1a',           # Surface gray
-                'card': '#212121',              # Elevated card
-                'cache_button': '#F44336',      # Material red for destructive action
-                'cache_button_hover': '#D32F2F', # Darker red
-                'gradient_start': '#0a0a0a',    # Deep black
-                'gradient_end': '#1e1e1e',      # Elevated surface
+                'primary': '#0d1117',           # GitHub dark - soft on eyes
+                'secondary': '#161b22',         # Slightly elevated
+                'tertiary': '#1f2428',          # Card surface
+                'accent': '#58a6ff',            # Soft GitHub blue - refreshing
+                'accent_hover': '#388bfd',      # Brighter on hover
+                'success': '#3fb950',           # Fresh green - cricket field
+                'warning': '#d29922',           # Warm amber
+                'error': '#f85149',             # Soft red - less harsh
+                'info': '#79c0ff',              # Light blue - refreshing
+                'cyan': '#56d4dd',              # Turquoise - fresh water
+                'purple': '#bc8cff',            # Soft lavender
+                'text_primary': '#e6edf3',      # Soft white - easy on eyes
+                'text_secondary': '#8b949e',    # Muted gray
+                'text_muted': '#6e7681',        # Subtle gray
+                'border': '#30363d',            # Subtle borders
+                'highlight': '#388bfd1a',       # Transparent blue highlight
+                'surface': '#161b22',           # Clean surface
+                'card': '#0d1117',              # Card background
+                'cache_button': '#f85149',      # Soft red for danger
+                'cache_button_hover': '#da3633', # Deeper red
+                'gradient_start': '#0d1117',    # Dark gradient
+                'gradient_end': '#1f2428',      # Lighter gradient
             },
             'fonts': {
                 'title': ('Segoe UI', 20, 'bold'),
@@ -3250,7 +3250,6 @@ class AppController:
         self.updates_to_install.clear()
         self.view.update_plan_text.config(state='disabled')
         if self.state != AppState.STARTING: self.set_state(AppState.IDLE)
-        self.view.host_selector.config(state="disabled")
 
     def _get_ordered_links_for_update(self, update_key: str) -> List[Dict[str, str]]:
         user_selection = self.download_source_var.get()
@@ -3286,7 +3285,6 @@ class AppController:
                 self.view.dashboard_status_label.config(text="You are on the latest version!", style="Success.TLabel")
                 self.view.update_dashboard_action_button.config(text=f"{Constants.ICON_CHECK} All Set!", state='disabled', style='TButton')
                 self.updates_to_install.clear()
-                self.view.host_selector.config(state="disabled")
                 return
 
             versions = self.update_data.get('versions', [])
@@ -3338,12 +3336,10 @@ class AppController:
                 self.view.dashboard_status_label.config(text=f"{len(self.updates_to_install)} update(s) found. Ready to install.", style="Success.TLabel")
                 logger.log(f"Found {len(self.updates_to_install)} updates.", "INFO")
                 self.view.update_dashboard_action_button.config(text=f"{Constants.ICON_DOWNLOAD} Start Update", command=self.start_update, style="Accent.TButton", state='normal')
-                self.view.host_selector.config(state="readonly")
             else:
                 self.view.update_plan_text.insert(tk.END, "You are up to date!")
                 self.view.dashboard_status_label.config(text="You are on the latest version!", style="Success.TLabel")
                 self.view.update_dashboard_action_button.config(text=f"{Constants.ICON_CHECK} All Set!", state='disabled', style='TButton')
-                self.view.host_selector.config(state="disabled")
 
         except ValueError:
             messagebox.showerror("Version Error", f"Your version (v{self.current_version}) is not in the update path. Consider manual install.")
@@ -4486,8 +4482,6 @@ Unreadable Files: {len(unreadable)}
         if source == 'CACHE':
             self.view.dashboard_latest_version_label.config(style='Warning.TLabel')
         logger.log(f"Initial data loaded successfully from {source}.", "INFO")
-        host_names = ["Automatic"] + [host['name'] for host in self.update_data.get('hosts', [])]
-        self.view.host_selector['values'] = host_names
         self.view.download_source_var.set("Automatic")
         self.update_cache_size_label()
 
@@ -4913,7 +4907,6 @@ Unreadable Files: {len(unreadable)}
             if messagebox.askyesno("Download Failed", f"Download from {selected_source} failed. This may be a connectivity issue with this specific host.\n\nWould you like to try a different download source automatically?", icon='warning'):
                 # Switch to automatic mode for retry
                 self.download_source_var.set("Automatic")
-                self.view.host_selector.set("Automatic")
                 messagebox.showinfo("Source Changed", "Download source changed to 'Automatic' for the next attempt. You can now try the update again.")
                 self.view.dashboard_status_label.config(text="Source changed to Automatic. Ready to retry.", style="Info.TLabel")
             elif messagebox.askyesno("Manual Installation", "You can also download the update files yourself and install them using the manual installer.\n\nWould you like to open the manual installer now?", icon='question'):
@@ -5276,24 +5269,31 @@ class AppGUI(tk.Tk):
         self.update_plan_text.tag_configure("cyan", foreground=cyan_color)
         self.update_plan_text.tag_configure("normal", foreground='#ffffff')
         
-        # Options section (always visible, no message)
+        # Options section - clean layout with checkbox and clear button
         options_subframe = ttk.Frame(self.details_frame)
-        options_subframe.grid(row=2, column=0, columnspan=2, sticky='ew', padx=10, pady=(10,10))
-        options_subframe.columnconfigure(1, weight=1)
+        options_subframe.grid(row=2, column=0, columnspan=2, sticky='ew', padx=10, pady=(8, 12))
         
-        ttk.Label(options_subframe, text="Download Source:", foreground=cyan_color, font=("Segoe UI", 9, 'bold')).grid(row=0, column=0, sticky='w', padx=(0,10), pady=5)
-        self.host_selector = ttk.Combobox(options_subframe, textvariable=self.download_source_var, state="disabled", values=["Automatic"])
-        self.host_selector.grid(row=0, column=1, sticky='ew', padx=(0,10), pady=5)
-        self.host_selector.bind("<<ComboboxSelected>>", lambda e: self.details_frame.focus_set())
+        # Center container for better alignment
+        options_container = ttk.Frame(options_subframe)
+        options_container.pack(expand=True)
         
-        self.checksum_checkbox = ttk.Checkbutton(options_subframe, text="Verify Checksums", variable=self.verify_checksum_var, style="Switch.TCheckbutton")
-        self.checksum_checkbox.grid(row=0, column=2, sticky='w', padx=(10,0), pady=5)
+        # Verify Checksums checkbox
+        self.checksum_checkbox = ttk.Checkbutton(
+            options_container, 
+            text="Verify Checksums", 
+            variable=self.verify_checksum_var, 
+            style="Switch.TCheckbutton"
+        )
+        self.checksum_checkbox.pack(side=tk.LEFT, padx=(0, 20), pady=6)
         
         # Clear Downloads button
-        clear_downloads_btn = ttk.Button(options_subframe, text=f"{Constants.ICON_TRASH} Clear All Downloads", 
-                                        command=self.controller.clear_all_downloads,
-                                        style="Modern.Danger.TButton")
-        clear_downloads_btn.grid(row=0, column=3, sticky='w', padx=(15,0), pady=5)
+        clear_downloads_btn = ttk.Button(
+            options_container, 
+            text=f"{Constants.ICON_TRASH} Clear All Downloads", 
+            command=self.controller.clear_all_downloads,
+            style="Modern.Danger.TButton"
+        )
+        clear_downloads_btn.pack(side=tk.LEFT, pady=6, ipady=4, ipadx=12)
 
         return dashboard_frame
 
@@ -5880,7 +5880,7 @@ class AppGUI(tk.Tk):
         self.verifier_report_buttons = [ self.save_full_report_button, self.save_problem_report_button, self.copy_problem_files_button ]
         self.log_buttons = [ self.log_refresh_btn, self.log_archive_btn, self.log_save_btn ]
         self.diag_buttons = [self.diag_run_button, self.dxdiag_button, self.diag_save_button]
-        self.updater_option_widgets = [self.checksum_checkbox, self.host_selector]
+        self.updater_option_widgets = [self.checksum_checkbox]
 
     def update_status_with_color(self, message: str, status_type: str = "info"):
         """Update status message with appropriate color coding."""
@@ -5996,10 +5996,8 @@ class AppGUI(tk.Tk):
         if is_idle:
             if self.controller.updates_to_install:
                 self.update_dashboard_action_button.config(text=f"{Constants.ICON_DOWNLOAD} Start Update", command=self.controller.start_update, state='normal')
-                self.host_selector.config(state="readonly")
             else:
                 self.update_dashboard_action_button.config(text=f"{Constants.ICON_SEARCH} Check for Updates", command=self.controller.check_updates, state='normal' if can_check else 'disabled')
-                self.host_selector.config(state="disabled")
         else:
              self.update_dashboard_action_button.config(state='disabled')
 
