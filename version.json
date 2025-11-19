@@ -1,44 +1,29 @@
 {
-  "latest_version": "5523",
-  "updates": [
+  "latest_version": "1.2",
+  "versions": [
+    "1.0",
+    "1.1",
+    "1.2"
+  ],
+  "hosts": [
     {
-      "version": "5523",
-      "description": "NO CHANFES",
-      "date": "2025-11-19",
-      "sources": [
-        {
-          "type": "gdrive",
-          "link": "AMAN",
-          "checksum": "AMAN",
-          "checksum_type": "sha256"
-        }
-      ]
-    },
-    {
-      "version": "1.1",
-      "description": "Bug fixes and performance improvements. Optimized game engine and fixed rendering issues.",
-      "date": "2025-11-19",
-      "sources": [
-        {
-          "type": "gdrive",
-          "link": "1ABC123XYZ456",
-          "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "checksum_type": "sha256"
-        }
-      ]
-    },
-    {
-      "version": "1.0",
-      "description": "Initial release. Base game installation with core features and gameplay.",
-      "date": "2025-11-01",
-      "sources": [
-        {
-          "type": "gdrive",
-          "link": "1XYZ789DEF012",
-          "checksum": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-          "checksum_type": "sha256"
-        }
-      ]
+      "id": "gdrive_primary",
+      "name": "Google Drive",
+      "links": {
+        "1.0_1.1": "1ABC123XYZ456",
+        "1.1_1.2": "1XYZ789ABC123"
+      }
     }
-  ]
+  ],
+  "update_sizes": {
+    "1.0_1.1": "500 MB",
+    "1.1_1.2": "750 MB"
+  },
+  "host_preference_order": [
+    "gdrive_primary"
+  ],
+  "manifest_links": {
+    "1.1": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.1.json",
+    "1.2": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.2.json"
+  }
 }
