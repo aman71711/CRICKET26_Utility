@@ -3994,6 +3994,21 @@ class AppController:
     @require_admin(relaunch_arg='--reset-dns')
     def reset_dns(self): self._run_dns_command(set_dns=False)
 
+    @manage_state(AppState.BUSY)
+    def reset_proxy(self):
+        """Reset Windows HTTP proxy settings."""
+        def _task():
+            command = ['netsh', 'winhttp', 'reset', 'proxy']
+            subprocess.run(command, check=True, capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            logger.log(f"Proxy reset successful: {' '.join(command)}", "INFO")
+            return "Windows HTTP proxy settings have been reset successfully."
+
+        def _on_done(msg: str):
+            messagebox.showinfo("Success", msg)
+            self.set_state(AppState.IDLE)
+
+        self.task_manager.submit(_task, on_done=_on_done, on_error=lambda msg: self._on_utility_error("Proxy Reset Failed", msg), is_utility_task=True)
+
     def _run_dns_command(self, set_dns: bool, from_failure_flow: bool = False):
         def _task():
             interface = self._get_active_interface()
@@ -5393,31 +5408,31 @@ class AppGUI(tk.Tk):
         return progress_frame
 
     def create_utility_tab(self):
-        """Create a compact utility tab that fits everything in one screen without scrolling."""
+        """Create a well-organized utility tab with balanced 2-column layout."""
         layout = ModernThemeManager.LAYOUT_CONFIG
         
-        # Main container with optimized padding
-        tab = ttk.Frame(self.notebook, padding=8)
+        # Main container
+        tab = ttk.Frame(self.notebook, padding=10)
         tab.columnconfigure((0, 1), weight=1)
         tab.rowconfigure((0, 1, 2, 3), weight=1)
         
-        # Enhanced button creation helper - compact version
-        def create_utility_button(parent, text, icon, command, style_type="secondary", row=0, column=0):
+        # Enhanced button creation helper
+        def create_utility_button(parent, text, icon, command, style_type="secondary", row=0, column=0, columnspan=1):
             """Create a standard utility button."""
             button_config = ModernThemeManager.get_button_config(style_type)
             
             button = ttk.Button(
                 parent, 
-                text=f"{icon} {text}", 
+                text=f"{icon}  {text}", 
                 command=command, 
                 style=button_config['style']
             )
-            button.grid(row=row, column=column, sticky='ew', padx=4, pady=3, ipady=4)
+            button.grid(row=row, column=column, columnspan=columnspan, sticky='ew', padx=6, pady=4, ipady=6)
             return button
 
         # === GAME MANAGEMENT SECTION ===
-        game_section = ttk.LabelFrame(tab, text=" 🎮 Game Management ", padding=8)
-        game_section.grid(row=0, column=0, columnspan=2, sticky='ew', pady=(0, 6))
+        game_section = ttk.LabelFrame(tab, text="🎮 Game Management", padding=10)
+        game_section.grid(row=0, column=0, columnspan=2, sticky='ew', pady=(0, 8))
         game_section.columnconfigure((0, 1), weight=1)
         
         self.launch_game_button = create_utility_button(
@@ -5441,8 +5456,8 @@ class AppGUI(tk.Tk):
         )
 
         # === FOLDER SHORTCUTS SECTION ===
-        folder_section = ttk.LabelFrame(tab, text=" 📁 Quick Access ", padding=8)
-        folder_section.grid(row=1, column=0, sticky='nsew', padx=(0, 4), pady=(0, 6))
+        folder_section = ttk.LabelFrame(tab, text="📁 Quick Access", padding=10)
+        folder_section.grid(row=1, column=0, sticky='nsew', padx=(0, 4), pady=(0, 8))
         folder_section.columnconfigure(0, weight=1)
         
         self.open_save_dir_button = create_utility_button(
@@ -5455,15 +5470,14 @@ class AppGUI(tk.Tk):
             self.controller.open_backups_dir, "secondary", 1, 0
         )
         
-        # Add Cricket 26 shortcut creation button to quick access
         self.create_shortcuts_button = create_utility_button(
-            folder_section, "Create Cricket 26 Shortcuts", Constants.ICON_SHORTCUT, 
+            folder_section, "Create Shortcuts", Constants.ICON_SHORTCUT, 
             self.controller.create_cricket26_shortcuts, "secondary", 2, 0
         )
 
         # === NETWORK TOOLS SECTION ===
-        network_section = ttk.LabelFrame(tab, text=" 🌐 Network Tools ", padding=8)
-        network_section.grid(row=1, column=1, sticky='nsew', padx=(4, 0), pady=(0, 6))
+        network_section = ttk.LabelFrame(tab, text="🌐 Network Tools", padding=10)
+        network_section.grid(row=1, column=1, sticky='nsew', padx=(4, 0), pady=(0, 8))
         network_section.columnconfigure(0, weight=1)
         
         self.dns_set_button = create_utility_button(
@@ -5475,32 +5489,37 @@ class AppGUI(tk.Tk):
             network_section, "Reset DNS", Constants.ICON_REFRESH, 
             self.controller.reset_dns, "secondary", 1, 0
         )
+        
+        self.proxy_reset_button = create_utility_button(
+            network_section, "Reset Proxy", Constants.ICON_NETWORK, 
+            self.controller.reset_proxy, "secondary", 2, 0
+        )
 
-        # === CACHE MANAGEMENT SECTION (RED BUTTON) ===
-        cache_section = ttk.LabelFrame(tab, text=" 🗑️ Cache Management ", padding=8)
-        cache_section.grid(row=2, column=0, columnspan=2, sticky='ew', pady=(0, 6))
+        # === CACHE MANAGEMENT SECTION ===
+        cache_section = ttk.LabelFrame(tab, text="🗑️ Cache Management", padding=10)
+        cache_section.grid(row=2, column=0, columnspan=2, sticky='ew', pady=(0, 8))
         cache_section.columnconfigure(0, weight=1)
         
         # Red clear cache button with danger styling
         self.clear_cache_button = ttk.Button(
             cache_section, 
-            text=f"{Constants.ICON_TRASH} Clear Cache", 
+            text=f"{Constants.ICON_TRASH}  Clear Download Cache", 
             command=self.controller.clear_download_cache,
             style="Modern.Danger.TButton"
         )
-        self.clear_cache_button.pack(pady=4, ipady=4, fill='x', padx=20)
+        self.clear_cache_button.pack(pady=6, ipady=8, fill='x', padx=30)
 
         # === CACHE INFO SECTION ===
-        cache_info_section = ttk.LabelFrame(tab, text=" 💾 Cache Information ", padding=6)
+        cache_info_section = ttk.LabelFrame(tab, text="💾 Cache Information", padding=10)
         cache_info_section.grid(row=3, column=0, columnspan=2, sticky='ew')
         cache_info_section.columnconfigure(1, weight=1)
         
-        ttk.Label(cache_info_section, text="Location:", style="Modern.Body.TLabel").grid(row=0, column=0, sticky='w', padx=(0, 10))
-        ttk.Label(cache_info_section, text=str(Constants.CACHE_DIR), style="Modern.Muted.TLabel").grid(row=0, column=1, sticky='w')
+        ttk.Label(cache_info_section, text="Location:", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, sticky='w', padx=(0, 10), pady=4)
+        ttk.Label(cache_info_section, text=str(Constants.CACHE_DIR), foreground="#B0BEC5", font=("Segoe UI", 9)).grid(row=0, column=1, sticky='w', pady=4)
         
-        ttk.Label(cache_info_section, text="Size:", style="Modern.Body.TLabel").grid(row=1, column=0, sticky='w', padx=(0, 10))
-        self.cache_size_label = ttk.Label(cache_info_section, text="Calculating...", style="Modern.Muted.TLabel")
-        self.cache_size_label.grid(row=1, column=1, sticky='w')
+        ttk.Label(cache_info_section, text="Size:", font=("Segoe UI", 9, "bold")).grid(row=1, column=0, sticky='w', padx=(0, 10), pady=4)
+        self.cache_size_label = ttk.Label(cache_info_section, text="Calculating...", foreground="#B0BEC5", font=("Segoe UI", 9))
+        self.cache_size_label.grid(row=1, column=1, sticky='w', pady=4)
         
         return tab
 
