@@ -5311,34 +5311,74 @@ class AppGUI(tk.Tk):
         return self.verifier_tab
 
     def _create_verifier_dashboard_view(self, parent):
-        dashboard_frame = ttk.Frame(parent, padding=10)
-        dashboard_frame.rowconfigure(1, weight=1); dashboard_frame.columnconfigure(0, weight=1)
+        dashboard_frame = ttk.Frame(parent, padding=12)
+        dashboard_frame.rowconfigure(1, weight=1)
+        dashboard_frame.columnconfigure(0, weight=1)
 
-        self.verifier_action_progress_frame = ttk.Frame(dashboard_frame); self.verifier_action_progress_frame.grid(row=0, column=0, sticky='ew', pady=(0, 15)); self.verifier_action_progress_frame.columnconfigure(0, weight=1)
-        self.verifier_idle_frame = ttk.Frame(self.verifier_action_progress_frame); self.verifier_idle_frame.grid(row=0, column=0, sticky='ew'); self.verifier_idle_frame.columnconfigure(0, weight=1)
-        self.verify_button = ttk.Button(self.verifier_idle_frame, text=f" {Constants.ICON_SHIELD_CHECK}  Verify All Game Files", command=self.controller.start_verification, style="Accent.TButton")
-        self.verify_button.pack(pady=(0, 12), ipady=6)
+        self.verifier_action_progress_frame = ttk.Frame(dashboard_frame)
+        self.verifier_action_progress_frame.grid(row=0, column=0, sticky='ew', pady=(0, 15))
+        self.verifier_action_progress_frame.columnconfigure(0, weight=1)
+        
+        self.verifier_idle_frame = ttk.Frame(self.verifier_action_progress_frame)
+        self.verifier_idle_frame.grid(row=0, column=0, sticky='ew')
+        self.verifier_idle_frame.columnconfigure(0, weight=1)
+        
+        # Center the verify button
+        button_container = ttk.Frame(self.verifier_idle_frame)
+        button_container.pack(pady=(10, 15))
+        self.verify_button = ttk.Button(button_container, 
+                                       text=f" {Constants.ICON_SHIELD_CHECK}  Verify All Game Files", 
+                                       command=self.controller.start_verification, 
+                                       style="Accent.TButton")
+        self.verify_button.pack(ipady=10, ipadx=30)
 
         self.verifier_progress_frame = self._create_progress_view(self.verifier_action_progress_frame, "Verifier")
 
-        report_frame = ttk.LabelFrame(dashboard_frame, text="Verification Report"); report_frame.grid(row=1, column=0, sticky='nsew', ipady=5, padx=5); report_frame.rowconfigure(0, weight=1); report_frame.columnconfigure(0, weight=1)
-        scroll = ttk.Scrollbar(report_frame, orient=tk.VERTICAL); self.verify_report_text = tk.Text(report_frame, wrap=tk.WORD, height=8, relief='flat', font=("Consolas", 9), yscrollcommand=scroll.set, bd=0, highlightthickness=0)
-        scroll.config(command=self.verify_report_text.yview); self.verify_report_text.grid(row=0, column=0, sticky='nsew', padx=(10,0), pady=10); scroll.grid(row=0, column=1, sticky='ns', padx=(0,10), pady=10)
+        report_frame = ttk.LabelFrame(dashboard_frame, text="Verification Report", padding=12)
+        report_frame.grid(row=1, column=0, sticky='nsew')
+        report_frame.rowconfigure(0, weight=1)
+        report_frame.columnconfigure(0, weight=1)
+        
+        scroll = ttk.Scrollbar(report_frame, orient=tk.VERTICAL)
+        self.verify_report_text = tk.Text(report_frame, wrap=tk.WORD, height=8, relief='flat', 
+                                          font=("Consolas", 9), yscrollcommand=scroll.set, bd=0, highlightthickness=0)
+        scroll.config(command=self.verify_report_text.yview)
+        self.verify_report_text.grid(row=0, column=0, sticky='nsew', padx=(10, 0), pady=10)
+        scroll.grid(row=0, column=1, sticky='ns', padx=(0, 10), pady=10)
         
         # Configure text tags for colored output
-        self.verify_report_text.tag_config("error", foreground="#e74c3c")      # Red for corrupted files
-        self.verify_report_text.tag_config("warning", foreground="#f39c12")    # Orange for missing files
-        self.verify_report_text.tag_config("success", foreground="#27ae60")    # Green for success
-        self.verify_report_text.tag_config("info", foreground="#3498db")       # Blue for info
+        self.verify_report_text.tag_config("error", foreground="#F44336")      # Material Red
+        self.verify_report_text.tag_config("warning", foreground="#FF9800")    # Material Orange
+        self.verify_report_text.tag_config("success", foreground="#4CAF50")    # Material Green
+        self.verify_report_text.tag_config("info", foreground="#2196F3")       # Material Blue
         
-        self.verify_report_text.insert(tk.END, "A summary of any issues found will appear here after verification."); self.verify_report_text.config(state='disabled')
-        report_actions = ttk.Frame(report_frame); report_actions.grid(row=1, column=0, columnspan=2, sticky='ew', padx=10, pady=(8,12))
-        self.save_full_report_button = ttk.Button(report_actions, text=f" {Constants.ICON_SAVE}  Save Full Report", state='disabled', command=lambda: self.controller.save_report('full'), style="Modern.Secondary.TButton")
-        self.save_full_report_button.pack(side=tk.LEFT, padx=(0,12), ipady=6)
-        self.save_problem_report_button = ttk.Button(report_actions, text=f" {Constants.ICON_FILE_EXPORT}  Save Problem List", state='disabled', command=lambda: self.controller.save_report('problems'), style="Modern.Secondary.TButton")
-        self.save_problem_report_button.pack(side=tk.LEFT, padx=(0,12), ipady=6)
-        self.copy_problem_files_button = ttk.Button(report_actions, text=f" {Constants.ICON_COPY}  Copy Problem List", state='disabled', command=self.controller.copy_problem_files_list, style="Modern.Secondary.TButton")
-        self.copy_problem_files_button.pack(side=tk.LEFT, ipady=6)
+        self.verify_report_text.insert(tk.END, "A summary of any issues found will appear here after verification.")
+        self.verify_report_text.config(state='disabled')
+        
+        report_actions = ttk.Frame(report_frame)
+        report_actions.grid(row=1, column=0, columnspan=2, sticky='ew', padx=10, pady=(10, 12))
+        
+        self.save_full_report_button = ttk.Button(report_actions, 
+                                                  text=f" {Constants.ICON_SAVE}  Save Full Report", 
+                                                  state='disabled', 
+                                                  command=lambda: self.controller.save_report('full'), 
+                                                  style="Modern.Secondary.TButton")
+        self.save_full_report_button.pack(side=tk.LEFT, padx=(0, 12), ipady=6, ipadx=10)
+        
+        self.save_problem_report_button = ttk.Button(report_actions, 
+                                                      text=f" {Constants.ICON_FILE_EXPORT}  Save Problem List", 
+                                                      state='disabled', 
+                                                      command=lambda: self.controller.save_report('problems'), 
+                                                      style="Modern.Secondary.TButton")
+        self.save_problem_report_button.pack(side=tk.LEFT, padx=(0, 12), ipady=6, ipadx=10)
+        
+        self.copy_problem_files_button = ttk.Button(report_actions, 
+                                                    text=f" {Constants.ICON_COPY}  Copy Problem List", 
+                                                    state='disabled', 
+                                                    command=self.controller.copy_problem_files_list, 
+                                                    style="Modern.Secondary.TButton")
+        self.copy_problem_files_button.pack(side=tk.LEFT, ipady=6, ipadx=10)
+        
         return dashboard_frame
 
     def _create_welcome_view(self, parent, tab_name):
@@ -5408,17 +5448,17 @@ class AppGUI(tk.Tk):
         return progress_frame
 
     def create_utility_tab(self):
-        """Create a well-organized utility tab with balanced 2-column layout."""
-        layout = ModernThemeManager.LAYOUT_CONFIG
+        """Create a modern utility tab with card-style sections and improved spacing."""
         
-        # Main container
-        tab = ttk.Frame(self.notebook, padding=10)
-        tab.columnconfigure((0, 1), weight=1)
-        tab.rowconfigure((0, 1, 2, 3), weight=1)
+        # Main container with better padding
+        tab = ttk.Frame(self.notebook, padding=15)
+        tab.columnconfigure((0, 1), weight=1, uniform='col')
+        tab.rowconfigure((0, 1, 2, 3), weight=0)
+        tab.rowconfigure(4, weight=1)  # Push everything to top
         
-        # Enhanced button creation helper
+        # Enhanced button creation helper with better defaults
         def create_utility_button(parent, text, icon, command, style_type="secondary", row=0, column=0, columnspan=1):
-            """Create a standard utility button."""
+            """Create a modern utility button with consistent styling."""
             button_config = ModernThemeManager.get_button_config(style_type)
             
             button = ttk.Button(
@@ -5427,12 +5467,13 @@ class AppGUI(tk.Tk):
                 command=command, 
                 style=button_config['style']
             )
-            button.grid(row=row, column=column, columnspan=columnspan, sticky='ew', padx=6, pady=4, ipady=6)
+            button.grid(row=row, column=column, columnspan=columnspan, sticky='ew', 
+                       padx=8, pady=6, ipady=10)
             return button
 
         # === GAME MANAGEMENT SECTION ===
-        game_section = ttk.LabelFrame(tab, text="🎮 Game Management", padding=10)
-        game_section.grid(row=0, column=0, columnspan=2, sticky='ew', pady=(0, 8))
+        game_section = ttk.LabelFrame(tab, text="🎮 Game Management", padding=15)
+        game_section.grid(row=0, column=0, columnspan=2, sticky='ew', pady=(0, 12))
         game_section.columnconfigure((0, 1), weight=1)
         
         self.launch_game_button = create_utility_button(
@@ -5456,8 +5497,8 @@ class AppGUI(tk.Tk):
         )
 
         # === FOLDER SHORTCUTS SECTION ===
-        folder_section = ttk.LabelFrame(tab, text="📁 Quick Access", padding=10)
-        folder_section.grid(row=1, column=0, sticky='nsew', padx=(0, 4), pady=(0, 8))
+        folder_section = ttk.LabelFrame(tab, text="📁 Quick Access", padding=15)
+        folder_section.grid(row=1, column=0, sticky='nsew', padx=(0, 6), pady=(0, 12))
         folder_section.columnconfigure(0, weight=1)
         
         self.open_save_dir_button = create_utility_button(
@@ -5476,63 +5517,66 @@ class AppGUI(tk.Tk):
         )
 
         # === NETWORK TOOLS SECTION ===
-        network_section = ttk.LabelFrame(tab, text="🌐 Network Tools", padding=10)
-        network_section.grid(row=1, column=1, sticky='nsew', padx=(4, 0), pady=(0, 8))
+        network_section = ttk.LabelFrame(tab, text="🌐 Network Tools", padding=15)
+        network_section.grid(row=1, column=1, sticky='nsew', padx=(6, 0), pady=(0, 12))
         network_section.columnconfigure(0, weight=1)
         
         self.dns_set_button = create_utility_button(
             network_section, "Set Cloudflare DNS", Constants.ICON_SHIELD_CHECK, 
             self.controller.set_dns, "secondary", 0, 0
         )
-        
         self.dns_reset_button = create_utility_button(
             network_section, "Reset DNS", Constants.ICON_REFRESH, 
             self.controller.reset_dns, "secondary", 1, 0
         )
         
         self.proxy_reset_button = create_utility_button(
-            network_section, "Reset Proxy", Constants.ICON_NETWORK, 
+            network_section, "Reset Proxy", Constants.ICON_SYNC, 
             self.controller.reset_proxy, "secondary", 2, 0
         )
 
         # === CACHE MANAGEMENT SECTION ===
-        cache_section = ttk.LabelFrame(tab, text="🗑️ Cache Management", padding=10)
-        cache_section.grid(row=2, column=0, columnspan=2, sticky='ew', pady=(0, 8))
+        cache_section = ttk.LabelFrame(tab, text="🗑️ Cache Management", padding=15)
+        cache_section.grid(row=2, column=0, columnspan=2, sticky='ew', pady=(0, 12))
         cache_section.columnconfigure(0, weight=1)
         
-        # Red clear cache button with danger styling
+        # Danger button with prominent styling
         self.clear_cache_button = ttk.Button(
             cache_section, 
             text=f"{Constants.ICON_TRASH}  Clear Download Cache", 
             command=self.controller.clear_download_cache,
             style="Modern.Danger.TButton"
         )
-        self.clear_cache_button.pack(pady=6, ipady=8, fill='x', padx=30)
+        self.clear_cache_button.pack(pady=8, ipady=12, fill='x', padx=40)
 
         # === CACHE INFO SECTION ===
-        cache_info_section = ttk.LabelFrame(tab, text="💾 Cache Information", padding=10)
+        cache_info_section = ttk.LabelFrame(tab, text="💾 Cache Information", padding=12)
         cache_info_section.grid(row=3, column=0, columnspan=2, sticky='ew')
         cache_info_section.columnconfigure(1, weight=1)
         
-        ttk.Label(cache_info_section, text="Location:", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, sticky='w', padx=(0, 10), pady=4)
-        ttk.Label(cache_info_section, text=str(Constants.CACHE_DIR), foreground="#B0BEC5", font=("Segoe UI", 9)).grid(row=0, column=1, sticky='w', pady=4)
+        ttk.Label(cache_info_section, text="Location:", font=("Segoe UI", 10, "bold")).grid(
+            row=0, column=0, sticky='w', padx=(8, 15), pady=6)
+        ttk.Label(cache_info_section, text=str(Constants.CACHE_DIR), 
+                 foreground="#B0BEC5", font=("Segoe UI", 9)).grid(
+            row=0, column=1, sticky='w', pady=6)
         
-        ttk.Label(cache_info_section, text="Size:", font=("Segoe UI", 9, "bold")).grid(row=1, column=0, sticky='w', padx=(0, 10), pady=4)
-        self.cache_size_label = ttk.Label(cache_info_section, text="Calculating...", foreground="#B0BEC5", font=("Segoe UI", 9))
-        self.cache_size_label.grid(row=1, column=1, sticky='w', pady=4)
+        ttk.Label(cache_info_section, text="Size:", font=("Segoe UI", 10, "bold")).grid(
+            row=1, column=0, sticky='w', padx=(8, 15), pady=6)
+        self.cache_size_label = ttk.Label(cache_info_section, text="Calculating...", 
+                                         foreground="#B0BEC5", font=("Segoe UI", 9))
+        self.cache_size_label.grid(row=1, column=1, sticky='w', pady=6)
         
         return tab
 
     def create_diagnostics_tab(self):
         """Create enhanced diagnostics tab with better visual organization."""
-        layout = ThemeManager.LAYOUT_CONFIG
-        tab = ttk.Frame(self.notebook, padding=layout['padding']['section_frame'])
+        tab = ttk.Frame(self.notebook, padding=15)
         tab.columnconfigure(0, weight=1)
         tab.rowconfigure(1, weight=1)
 
         # Enhanced header with description
         header_frame = ttk.Frame(tab)
-        header_frame.pack(fill=tk.X, pady=(0, 20))
+        header_frame.pack(fill=tk.X, pady=(0, 18))
         
         ttk.Label(header_frame, text="🩺 System Diagnostics", style="Modern.Title.TLabel").pack(anchor='w')
         ttk.Label(header_frame, text="Analyze your system and game installation for potential issues", 
@@ -5540,7 +5584,7 @@ class AppGUI(tk.Tk):
 
         # Enhanced controls frame with better spacing
         controls_frame = ttk.LabelFrame(tab, text="Diagnostic Tools", padding=15)
-        controls_frame.pack(fill=tk.X, pady=(0, 20))
+        controls_frame.pack(fill=tk.X, pady=(0, 18))
         controls_frame.columnconfigure((0, 1, 2), weight=1)
 
         self.diag_run_button = ttk.Button(
@@ -5549,7 +5593,7 @@ class AppGUI(tk.Tk):
             command=self.controller.run_full_diagnostics, 
             style="Modern.Primary.TButton"
         )
-        self.diag_run_button.grid(row=0, column=0, sticky='ew', padx=(0, 10), ipady=10)
+        self.diag_run_button.grid(row=0, column=0, sticky='ew', padx=(0, 10), ipady=12)
         
         self.dxdiag_button = ttk.Button(
             controls_frame, 
@@ -5557,7 +5601,7 @@ class AppGUI(tk.Tk):
             command=self.controller.generate_dxdiag_report, 
             style="Modern.Secondary.TButton"
         )
-        self.dxdiag_button.grid(row=0, column=1, sticky='ew', padx=5, ipady=10)
+        self.dxdiag_button.grid(row=0, column=1, sticky='ew', padx=5, ipady=12)
         
         self.diag_save_button = ttk.Button(
             controls_frame, 
@@ -5566,14 +5610,14 @@ class AppGUI(tk.Tk):
             state='disabled', 
             style="Modern.Secondary.TButton"
         )
-        self.diag_save_button.grid(row=0, column=2, sticky='ew', padx=(10, 0), ipady=10)
+        self.diag_save_button.grid(row=0, column=2, sticky='ew', padx=(10, 0), ipady=12)
 
         # --- Main Paned Window ---
         main_pane = ttk.PanedWindow(tab, orient=tk.HORIZONTAL)
         main_pane.pack(fill=tk.BOTH, expand=True)
 
         # --- System Information Frame ---
-        sys_info_frame = ttk.LabelFrame(main_pane, text="System Information", padding=10)
+        sys_info_frame = ttk.LabelFrame(main_pane, text="System Information", padding=12)
         sys_info_frame.columnconfigure(1, weight=1)
         main_pane.add(sys_info_frame, weight=1)
         
@@ -5584,12 +5628,13 @@ class AppGUI(tk.Tk):
             "Disk Space": "Disk Space"
         }
         for i, (key, label_text) in enumerate(labels_to_create.items()):
-            ttk.Label(sys_info_frame, text=f"{label_text}:", font=("Segoe UI", 10)).grid(row=i, column=0, sticky='nw', pady=4, padx=5)
+            ttk.Label(sys_info_frame, text=f"{label_text}:", font=("Segoe UI", 9, "bold")).grid(
+                row=i, column=0, sticky='nw', pady=6, padx=8)
             self.diag_labels[key] = ttk.Label(sys_info_frame, text="Loading...", wraplength=320, justify=tk.LEFT)
-            self.diag_labels[key].grid(row=i, column=1, sticky='new', padx=5, pady=4)
+            self.diag_labels[key].grid(row=i, column=1, sticky='new', padx=8, pady=6)
 
         # --- Crash Logs Frame ---
-        crash_frame = ttk.LabelFrame(main_pane, text="Game Crash Logs", padding=10)
+        crash_frame = ttk.LabelFrame(main_pane, text="Game Crash Logs", padding=12)
         main_pane.add(crash_frame, weight=2)
         crash_frame.rowconfigure(0, weight=1)
         crash_frame.columnconfigure(0, weight=1)
