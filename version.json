@@ -5,7 +5,6 @@
     "1.1",
     "1.2"
   ],
-<<<<<<< HEAD
   "hosts": [
     {
       "id": "gdrive_primary",
@@ -28,53 +27,3 @@
     "1.2": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.2.json"
   }
 }
-=======
-  "updates": [
-    {
-      "version": "1.2",
-      "description": "Major update with new features. Added multiplayer support, improved graphics, and bug fixes.",
-      "date": "2025-11-20",
-      "sources": [
-        {
-          "type": "gdrive",
-          "link": "1XYZ789ABC123",
-          "checksum": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
-          "checksum_type": "sha256"
-        }
-      ],
-      "manifest_link": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.2.json",
-      "fallback_info": {
-        "url": "https://example.com/cricket26_v1.2_patch.zip",
-        "message": "Primary download unavailable. Using alternative download server."
-      }
-    },
-    {
-      "version": "1.1",
-      "description": "Bug fixes and performance improvements. Optimized game engine and fixed rendering issues.",
-      "date": "2025-11-15",
-      "sources": [
-        {
-          "type": "gdrive",
-          "link": "1ABC123XYZ456",
-          "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "checksum_type": "sha256"
-        }
-      ]
-    },
-    {
-      "version": "1.0",
-      "description": "Initial release. Base game installation with core features and gameplay.",
-      "date": "2025-11-01",
-      "sources": [
-        {
-          "type": "gdrive",
-          "link": "1XYZ789DEF012",
-          "checksum": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-          "checksum_type": "sha256"
-        }
-      ],
-      "manifest_link": "https://raw.githubusercontent.com/aman71711/CRICKET26_Utility/main/manifests/manifest_v1.0.json"
-    }
-  ]
-}
->>>>>>> 230d9dec8e23807546e5bc0e43703ef1c0d82e16
