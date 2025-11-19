@@ -1,6 +1,19 @@
 {
-  "latest_version": "1.1",
+  "latest_version": "5523",
   "updates": [
+    {
+      "version": "5523",
+      "description": "NO CHANFES",
+      "date": "2025-11-19",
+      "sources": [
+        {
+          "type": "gdrive",
+          "link": "AMAN",
+          "checksum": "AMAN",
+          "checksum_type": "sha256"
+        }
+      ]
+    },
     {
       "version": "1.1",
       "description": "Bug fixes and performance improvements. Optimized game engine and fixed rendering issues.",
@@ -29,4 +42,3 @@
     }
   ]
 }
-
