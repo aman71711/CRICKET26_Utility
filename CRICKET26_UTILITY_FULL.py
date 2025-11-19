@@ -91,10 +91,18 @@ class Constants:
     DOWNLOAD_TIMEOUT_SECONDS = 15
     DOWNLOAD_THREADS = 6  # Number of concurrent download threads for smart system
     DOWNLOAD_CONCURRENT_CHUNKS = 8  # Increased from 4 to 8 for better speed
-    DOWNLOAD_CHUNK_SIZE = 10 * 1024 * 1024
+    DOWNLOAD_CHUNK_SIZE = 10 * 1024 * 1024  # 10MB chunks for optimal performance
+    DOWNLOAD_BUFFER_SIZE = 128 * 1024  # 128KB buffer for file writing
     DIAG_PROCESS_TIMEOUT_SECONDS = 60
     DXDIAG_TIMEOUT_SECONDS = 180
     WMI_TIMEOUT_SECONDS = 20
+    
+    # UI Performance Optimization Constants
+    QUEUE_PROCESS_INTERVAL_ACTIVE = 30  # ms during active operations (was 50)
+    QUEUE_PROCESS_INTERVAL_IDLE = 100  # ms during idle (was 100)
+    MAX_QUEUE_MESSAGES_PER_CYCLE = 20  # Limit messages per cycle to prevent UI freeze
+    MAX_LOG_BUFFER_SIZE = 10000  # Maximum log entries to keep in memory
+    CLEANUP_INTERVAL_CYCLES = 300  # Cleanup every N cycles (300 * 30ms = 9s)
     
     # --- Modern Unicode Icons (No FontAwesome dependency needed) ---
     ICON_SHIELD = '🛡️'              # shield (protection/security)
@@ -201,27 +209,28 @@ class ModernThemeManager:
         'dark': {
             'name': 'Dark Professional',
             'colors': {
-                'primary': '#0f0f0f',           # Deep black
-                'secondary': '#1a1a1a',         # Dark gray
-                'tertiary': '#2d2d2d',          # Medium gray
-                'accent': '#0078d4',            # Microsoft Blue
-                'accent_hover': '#106ebe',      # Darker blue
-                'success': '#16a085',           # Modern teal
-                'warning': '#f39c12',           # Modern orange
-                'error': '#e74c3c',             # Modern red
-                'info': '#3498db',              # Modern blue
-                'cyan': '#00bcd4',              # Bright cyan for patch information
-                'text_primary': '#ffffff',      # Pure white
-                'text_secondary': '#e0e0e0',    # Light gray
-                'text_muted': '#a0a0a0',        # Medium gray
-                'border': '#3a3a3a',            # Border gray
-                'highlight': '#404040',         # Highlight gray
-                'surface': '#1e1e1e',           # Surface gray
-                'card': '#252525',              # Card background
-                'cache_button': '#e74c3c',      # Red for clear cache
-                'cache_button_hover': '#c0392b', # Darker red
-                'gradient_start': '#1a1a1a',    # Gradient start
-                'gradient_end': '#2d2d2d',      # Gradient end
+                'primary': '#0a0a0a',           # Deeper black for modern look
+                'secondary': '#141414',         # Rich dark gray
+                'tertiary': '#1e1e1e',          # Elevated surface
+                'accent': '#2196F3',            # Material Blue - more vibrant
+                'accent_hover': '#1976D2',      # Darker blue on hover
+                'success': '#4CAF50',           # Material Green - vibrant
+                'warning': '#FF9800',           # Material Orange
+                'error': '#F44336',             # Material Red
+                'info': '#00BCD4',              # Cyan - bright and modern
+                'cyan': '#00E5FF',              # Electric cyan for highlights
+                'purple': '#9C27B0',            # Material Purple for variety
+                'text_primary': '#FFFFFF',      # Pure white
+                'text_secondary': '#B0BEC5',    # Cool gray
+                'text_muted': '#78909C',        # Muted blue-gray
+                'border': '#263238',            # Dark blue-gray border
+                'highlight': '#37474F',         # Blue-gray highlight
+                'surface': '#1a1a1a',           # Surface gray
+                'card': '#212121',              # Elevated card
+                'cache_button': '#F44336',      # Material red for destructive action
+                'cache_button_hover': '#D32F2F', # Darker red
+                'gradient_start': '#0a0a0a',    # Deep black
+                'gradient_end': '#1e1e1e',      # Elevated surface
             },
             'fonts': {
                 'title': ('Segoe UI', 20, 'bold'),
@@ -387,6 +396,22 @@ class ModernThemeManager:
                          foreground=[('active', 'white'),
                                    ('pressed', 'white'),
                                    ('disabled', '#666666')])  # Proper gray for disabled text
+                
+                style.configure('Modern.Danger.TButton',
+                               font=fonts['button'],
+                               foreground='white',
+                               background=colors['error'],
+                               focuscolor='none',
+                               borderwidth=0,
+                               relief='flat')
+                
+                style.map('Modern.Danger.TButton',
+                         background=[('active', '#D32F2F'),
+                                   ('pressed', '#D32F2F'),
+                                   ('disabled', '#2a2a2a')],
+                         foreground=[('active', 'white'),
+                                   ('pressed', 'white'),
+                                   ('disabled', '#666666')])
                 
                 style.configure('Modern.Utility.TButton',
                                font=fonts['button'],  # Use consistent button font (bold)
@@ -3096,7 +3121,7 @@ class AppController:
         try:
             # Process all pending messages with improved batching for real-time responsiveness
             messages_processed = 0
-            max_messages_per_cycle = 10  # Limit to prevent UI freezing
+            max_messages_per_cycle = Constants.MAX_QUEUE_MESSAGES_PER_CYCLE  # Use constant (was hardcoded 10)
             
             while not self.progress_queue.empty() and messages_processed < max_messages_per_cycle:
                 try:
@@ -3113,11 +3138,11 @@ class AppController:
                 except Exception as e:
                     logger.log(f"Critical error in process_queue loop: {e}", "CRITICAL")
                     
-            # Periodic cleanup adjusted for higher frequency processing
+            # Optimized periodic cleanup
             if not hasattr(self, '_cleanup_counter'):
                 self._cleanup_counter = 0
             self._cleanup_counter += 1
-            if self._cleanup_counter >= 200:  # Adjusted for higher frequency (200 * 50ms = 10s)
+            if self._cleanup_counter >= Constants.CLEANUP_INTERVAL_CYCLES:
                 self._cleanup_counter = 0
                 try:
                     self.task_manager.cleanup_completed_futures()
@@ -3127,11 +3152,13 @@ class AppController:
             logger.log(f"process_queue outer exception: {e}", "CRITICAL")
         finally:
             # Dynamic scheduling for optimal real-time responsiveness
-            if self.state == AppState.UPDATING:
-                interval = 50  # 50ms during updates for smooth progress
+            if self.state in [AppState.UPDATING, AppState.VERIFYING, AppState.MANUAL_INSTALLING]:
+                interval = Constants.QUEUE_PROCESS_INTERVAL_ACTIVE  # 30ms during active operations
             else:
-                interval = 100  # 100ms during normal operation
-            self.view.after(interval, self.process_queue)
+                interval = Constants.QUEUE_PROCESS_INTERVAL_IDLE  # 100ms during idle
+            
+            if hasattr(self, 'view') and self.view.winfo_exists():
+                self.view.after(interval, self.process_queue)
 
     def set_state(self, new_state: AppState):
         """Thread-safe state management with logging."""
@@ -3556,8 +3583,8 @@ class AppController:
         self.task_manager.submit(workflow.run)
         
         # Initial queue processing for immediate response
-        self.view.after(1, self.process_queue)  # Immediate processing
-        self.view.after(25, self.process_queue)  # Quick follow-up
+        # Single immediate queue processing (removed redundant calls)
+        self.view.after(1, self.process_queue)
 
     def cancel_update(self):
         if self.state == AppState.UPDATING:
@@ -3892,6 +3919,38 @@ class AppController:
             _clear_cache_worker,
             on_done=_on_clear_cache_done,
             on_error=lambda msg: self._on_utility_error("Clear Cache Failed", msg),
+            is_utility_task=True,
+            kwargs={'cd': cache_dir}
+        )
+
+    @manage_state(AppState.BUSY)
+    def clear_all_downloads(self):
+        """Clear all cached downloads from the updater."""
+        cache_dir = Constants.CACHE_DIR
+        if not cache_dir.exists() or not any(cache_dir.iterdir()):
+            messagebox.showinfo("No Downloads", "There are no cached downloads to clear.")
+            self.set_state(AppState.IDLE)
+            return
+
+        total_size = sum(f.stat().st_size for f in cache_dir.glob('**/*') if f.is_file())
+        if not messagebox.askyesno("Clear All Downloads", f"This will permanently delete all downloaded update files ({format_bytes(total_size)}).\n\nContinue?", icon='warning'):
+            self.set_state(AppState.IDLE)
+            return
+
+        def _clear_worker(cd: Path):
+            for item in cd.iterdir():
+                if item.is_dir(): shutil.rmtree(item)
+                else: item.unlink()
+            return "All downloads cleared successfully."
+
+        def _on_done(msg: str):
+            self._on_utility_complete(msg)
+            self.update_cache_size_label()
+
+        self.task_manager.submit(
+            _clear_worker,
+            on_done=_on_done,
+            on_error=lambda msg: self._on_utility_error("Clear Failed", msg),
             is_utility_task=True,
             kwargs={'cd': cache_dir}
         )
@@ -4527,33 +4586,65 @@ Unreadable Files: {len(unreadable)}
         report_text.insert(tk.END, f"--- {message} ---\n"); report_text.config(state='disabled')
 
     def _handle_status(self, msg: dict):
-        if self.state in [AppState.UPDATING, AppState.MANUAL_INSTALLING]: self.view.updater_status_label.config(text=f"Status: {msg['message']}")
-        elif self.state == AppState.VERIFYING: self.view.verifier_status_label.config(text=f"Status: {msg['message']}")
+        """Handle status updates with safety checks to prevent UI crashes."""
+        try:
+            if not hasattr(self, 'view') or not self.view.winfo_exists():
+                return
+            
+            if self.state in [AppState.UPDATING, AppState.MANUAL_INSTALLING]:
+                if hasattr(self.view, 'updater_status_label') and self.view.updater_status_label.winfo_exists():
+                    self.view.updater_status_label.config(text=f"Status: {msg.get('message', '')}")
+            elif self.state == AppState.VERIFYING:
+                if hasattr(self.view, 'verifier_status_label') and self.view.verifier_status_label.winfo_exists():
+                    self.view.verifier_status_label.config(text=f"Status: {msg.get('message', '')}")
+        except (tk.TclError, AttributeError, Exception) as e:
+            logger.log(f"Status update failed: {e}", "WARNING")
 
     def _handle_overall_status(self, msg: dict):
-        if self.state in [AppState.UPDATING, AppState.MANUAL_INSTALLING]: self.view.updater_overall_label.config(text=f"{msg['message']}")
-        elif self.state == AppState.VERIFYING: self.view.verifier_overall_label.config(text=f"{msg['message']}")
+        """Handle overall status updates with safety checks."""
+        try:
+            if not hasattr(self, 'view') or not self.view.winfo_exists():
+                return
+            
+            if self.state in [AppState.UPDATING, AppState.MANUAL_INSTALLING]:
+                if hasattr(self.view, 'updater_overall_label') and self.view.updater_overall_label.winfo_exists():
+                    self.view.updater_overall_label.config(text=f"{msg.get('message', '')}")
+            elif self.state == AppState.VERIFYING:
+                if hasattr(self.view, 'verifier_overall_label') and self.view.verifier_overall_label.winfo_exists():
+                    self.view.verifier_overall_label.config(text=f"{msg.get('message', '')}")
+        except (tk.TclError, AttributeError, Exception) as e:
+            logger.log(f"Overall status update failed: {e}", "WARNING")
 
     def _handle_progress(self, msg: dict):
-        progress_bar = None
-        if self.state in [AppState.UPDATING, AppState.MANUAL_INSTALLING]: 
-            progress_bar = self.view.updater_bar
-        elif self.state == AppState.VERIFYING: 
-            progress_bar = self.view.verifier_bar
+        """Handle progress updates with comprehensive safety checks."""
+        try:
+            if not hasattr(self, 'view') or not self.view.winfo_exists():
+                return
             
-        if progress_bar:
-            # Ensure consistent progress bar state
-            current_mode = progress_bar.cget('mode')
-            if current_mode == 'indeterminate':
-                progress_bar.stop()
-                progress_bar.config(mode='determinate')
-            
-            # Validate progress value
-            progress_value = msg.get('value', 0)
-            if isinstance(progress_value, (int, float)) and 0 <= progress_value <= 100:
-                progress_bar.config(value=progress_value)
-            else:
-                logger.log(f"Invalid progress value received: {progress_value}", "WARNING")
+            progress_bar = None
+            if self.state in [AppState.UPDATING, AppState.MANUAL_INSTALLING]:
+                if hasattr(self.view, 'updater_bar') and self.view.updater_bar.winfo_exists():
+                    progress_bar = self.view.updater_bar
+            elif self.state == AppState.VERIFYING:
+                if hasattr(self.view, 'verifier_bar') and self.view.verifier_bar.winfo_exists():
+                    progress_bar = self.view.verifier_bar
+                
+            if progress_bar:
+                # Ensure consistent progress bar state
+                current_mode = progress_bar.cget('mode')
+                if current_mode == 'indeterminate':
+                    progress_bar.stop()
+                    progress_bar.config(mode='determinate')
+                
+                # Validate and clamp progress value
+                progress_value = msg.get('value', 0)
+                if isinstance(progress_value, (int, float)):
+                    progress_value = max(0, min(100, progress_value))  # Clamp between 0-100
+                    progress_bar.config(value=progress_value)
+                else:
+                    logger.log(f"Invalid progress value received: {progress_value}", "WARNING")
+        except (tk.TclError, AttributeError, Exception) as e:
+            logger.log(f"Progress update failed: {e}", "WARNING")
 
     def _handle_progress_mode(self, msg: dict):
         progress_bar = None
@@ -5151,36 +5242,43 @@ class AppGUI(tk.Tk):
 
         self.progress_frame = self._create_progress_view(self.action_progress_frame, "Updater")
 
-        self.details_frame = ttk.LabelFrame(dashboard_frame, text="Update Plan & Options"); self.details_frame.grid(row=2, column=0, sticky='nsew', ipady=5, padx=5, pady=(15,0)); self.details_frame.rowconfigure(0, weight=1); self.details_frame.columnconfigure(0, weight=1)
+        self.details_frame = ttk.LabelFrame(dashboard_frame, text="📋 Update Plan & Options")
+        self.details_frame.grid(row=2, column=0, sticky='nsew', ipady=5, padx=5, pady=(15,0))
+        self.details_frame.rowconfigure(0, weight=1)
+        self.details_frame.columnconfigure(0, weight=1)
         
-        # Add description for update plan with theme-aware cyan color
-        plan_desc_frame = ttk.Frame(self.details_frame)
-        plan_desc_frame.grid(row=0, column=0, columnspan=2, sticky='ew', padx=10, pady=(5,0))
+        # Get theme color
         cyan_color = ModernThemeManager.get_cyan_color('dark')
-        plan_desc_label = ttk.Label(plan_desc_frame, text="📝 This section will show available updates after checking for updates", 
-                                   style="Modern.Info.TLabel", font=("Segoe UI", 9), foreground=cyan_color)
-        plan_desc_label.pack(anchor='w')
         
         plan_scroll = ttk.Scrollbar(self.details_frame, orient=tk.VERTICAL)
-        self.update_plan_text = tk.Text(self.details_frame, wrap=tk.WORD, yscrollcommand=plan_scroll.set, font=("Segoe UI", 10), relief='flat', height=5, bd=0, highlightthickness=0); plan_scroll.config(command=self.update_plan_text.yview)
-        self.update_plan_text.grid(row=1, column=0, sticky='nsew', padx=(10,0), pady=10); plan_scroll.grid(row=1, column=1, sticky='ns', padx=(0,10), pady=10); self.update_plan_text.config(state='disabled')
+        self.update_plan_text = tk.Text(self.details_frame, wrap=tk.WORD, yscrollcommand=plan_scroll.set, font=("Segoe UI", 10), relief='flat', height=5, bd=0, highlightthickness=0)
+        plan_scroll.config(command=self.update_plan_text.yview)
+        self.update_plan_text.grid(row=0, column=0, sticky='nsew', padx=(10,0), pady=10)
+        plan_scroll.grid(row=0, column=1, sticky='ns', padx=(0,10), pady=10)
+        self.update_plan_text.config(state='disabled')
         
         # Configure text tags for colored styling
         self.update_plan_text.tag_configure("cyan", foreground=cyan_color)
         self.update_plan_text.tag_configure("normal", foreground='#ffffff')
         
-        # Add description for options with theme-aware cyan color
-        options_desc_frame = ttk.Frame(self.details_frame)
-        options_desc_frame.grid(row=2, column=0, columnspan=2, sticky='ew', padx=10, pady=(10,5))
-        options_desc_label = ttk.Label(options_desc_frame, text="⚙️ Options will be available after checking for updates", 
-                                      style="Modern.Info.TLabel", font=("Segoe UI", 9), foreground=cyan_color)
-        options_desc_label.pack(anchor='w')
+        # Options section (always visible, no message)
+        options_subframe = ttk.Frame(self.details_frame)
+        options_subframe.grid(row=2, column=0, columnspan=2, sticky='ew', padx=10, pady=(10,10))
+        options_subframe.columnconfigure(1, weight=1)
         
-        options_subframe = ttk.Frame(self.details_frame); options_subframe.grid(row=3, column=0, columnspan=2, sticky='ew', padx=10, pady=(0,10)); options_subframe.columnconfigure(1, weight=1)
-        ttk.Label(options_subframe, text="Download Source:", foreground=cyan_color).grid(row=0, column=0, sticky='w', padx=(0,5), pady=5)
-        self.host_selector = ttk.Combobox(options_subframe, textvariable=self.download_source_var, state="disabled", values=["Automatic"]); self.host_selector.grid(row=0, column=1, sticky='ew', padx=(0,10), pady=5)
+        ttk.Label(options_subframe, text="Download Source:", foreground=cyan_color, font=("Segoe UI", 9, 'bold')).grid(row=0, column=0, sticky='w', padx=(0,10), pady=5)
+        self.host_selector = ttk.Combobox(options_subframe, textvariable=self.download_source_var, state="disabled", values=["Automatic"])
+        self.host_selector.grid(row=0, column=1, sticky='ew', padx=(0,10), pady=5)
         self.host_selector.bind("<<ComboboxSelected>>", lambda e: self.details_frame.focus_set())
-        self.checksum_checkbox = ttk.Checkbutton(options_subframe, text="Verify Checksums", variable=self.verify_checksum_var, style="Switch.TCheckbutton"); self.checksum_checkbox.grid(row=0, column=2, sticky='w', padx=(10,0), pady=5)
+        
+        self.checksum_checkbox = ttk.Checkbutton(options_subframe, text="Verify Checksums", variable=self.verify_checksum_var, style="Switch.TCheckbutton")
+        self.checksum_checkbox.grid(row=0, column=2, sticky='w', padx=(10,0), pady=5)
+        
+        # Clear Downloads button
+        clear_downloads_btn = ttk.Button(options_subframe, text=f"{Constants.ICON_TRASH} Clear All Downloads", 
+                                        command=self.controller.clear_all_downloads,
+                                        style="Modern.Danger.TButton")
+        clear_downloads_btn.grid(row=0, column=3, sticky='w', padx=(15,0), pady=5)
 
         return dashboard_frame
 
@@ -5938,9 +6036,19 @@ class AppGUI(tk.Tk):
                 new_content = False
                 with logger.log_file.open('r', encoding='utf-8') as f:
                     f.seek(self.log_file_last_pos)
+                    lines_added = 0
+                    
                     for line in f:
                         new_content = True
                         line_stripped = line.strip()
+                        
+                        # Limit log buffer size to prevent memory bloat
+                        if lines_added > 0 and lines_added % 100 == 0:
+                            current_lines = int(self.log_text.index('end-1c').split('.')[0])
+                            if current_lines > Constants.MAX_LOG_BUFFER_SIZE:
+                                # Delete oldest 20% of lines
+                                delete_count = int(Constants.MAX_LOG_BUFFER_SIZE * 0.2)
+                                self.log_text.delete('1.0', f'{delete_count}.0')
                         
                         # Determine the tag based on log level
                         tag = "success"  # default to green for general operations
@@ -5960,14 +6068,20 @@ class AppGUI(tk.Tk):
                         
                         # Insert with appropriate color tag
                         self.log_text.insert(tk.END, f"{symbol} {line_stripped}\n", tag)
+                        lines_added += 1
                     
                     self.log_file_last_pos = f.tell()
                 
                 if new_content:
                     self.log_content_has_changed = True
-                    if "Logs" in self.notebook.tab(self.notebook.select(), "text"):
-                        self.log_text.see(tk.END)
-                        self.log_content_has_changed = False
+                    # Safety check for notebook existence
+                    if hasattr(self, 'notebook') and self.notebook.winfo_exists():
+                        try:
+                            if "Logs" in self.notebook.tab(self.notebook.select(), "text"):
+                                self.log_text.see(tk.END)
+                                self.log_content_has_changed = False
+                        except (tk.TclError, Exception):
+                            pass  # Tab not selected or notebook destroyed
             else:
                 self.log_text.insert(tk.END, "📄 No application log file found.\n", "warning")
                 self.log_file_last_pos = 0
